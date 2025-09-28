@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/art5concept/clixxkey/internal/crypto"
 	"github.com/art5concept/clixxkey/internal/models"
@@ -32,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 	dataDir := home + "/.clixxkey"
-	os.MkdirAll(dataDir, 0700) // Crea la carpeta con permisos seguros
+	os.MkdirAll(dataDir, 0700)
 
 	jsonPath := dataDir + "/passwords.json"
 	saltPath := dataDir + "/passwords.salt"
@@ -49,9 +50,18 @@ func main() {
 	key := crypto.DeriveKey([]byte(password), salt)
 
 	repo = file.NewEncrypted(jsonPath, key)
+
+	_, err = repo.List()
+	if err != nil {
+		fmt.Println("Error de desencriptado.")
+		time.Sleep(2 * time.Second)
+		os.Exit(1)
+	}
+
 	scanner = bufio.NewScanner(os.Stdin)
 
 	for {
+		service.ClearScreen()
 		fmt.Println("----------------------------------------")
 		fmt.Println("\n Password Manager ")
 		fmt.Println("1. Mostrar Contraseñas")
@@ -73,7 +83,18 @@ func main() {
 				return
 			}
 			service.ClearScreen()
-			file.PrintPasswordsTable(passwords)
+			file.PrintPasswordsTable(passwords, -1)
+			fmt.Println("Enter ID to view password details or press Enter to return:")
+			scanner.Scan()
+			id := scanner.Text()
+			idInt, err := strconv.Atoi(id)
+			if err != nil {
+				fmt.Println("Invalid ID, please enter a number.")
+				continue
+			}
+			service.ClearScreen()
+			file.PrintPasswordsTable(passwords, idInt)
+			time.Sleep(2 * time.Second)
 			continue
 
 		} else if option == "2" {
