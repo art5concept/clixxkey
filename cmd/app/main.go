@@ -20,25 +20,11 @@ func main() {
 	service.EnableVirtualTerminalProcessing()
 
 	fmt.Println("CLI password manager")
-	// file.PrintFile()
-
-	// file.CreateFile()
 
 	fmt.Print("Introduce tu contraseña maestra: ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	password := scanner.Text()
-
-	// Salt: genera o lee de archivo
-	var salt []byte
-	if _, err := os.Stat("passwords.salt"); os.IsNotExist(err) {
-		salt, _ = crypto.GenerateSalt()
-		os.WriteFile("passwords.salt", salt, 0600)
-	} else {
-		salt, _ = os.ReadFile("passwords.salt")
-	}
-
-	key := crypto.DeriveKey([]byte(password), salt)
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -50,6 +36,17 @@ func main() {
 
 	jsonPath := dataDir + "/passwords.json"
 	saltPath := dataDir + "/passwords.salt"
+
+	// Salt: genera o lee de archivo
+	var salt []byte
+	if _, err := os.Stat(saltPath); os.IsNotExist(err) {
+		salt, _ = crypto.GenerateSalt()
+		os.WriteFile(saltPath, salt, 0600)
+	} else {
+		salt, _ = os.ReadFile(saltPath)
+	}
+
+	key := crypto.DeriveKey([]byte(password), salt)
 
 	repo = file.NewEncrypted(jsonPath, key)
 	scanner = bufio.NewScanner(os.Stdin)
@@ -134,66 +131,6 @@ func main() {
 			continue
 		}
 
-		//
-
-		// if !scanner.Scan() {
-		// 	break
-		// }
 	}
-
-	// pass := models.Password{
-	// 	ID:       0,
-	// 	Site:     "example.com",
-	// 	Username: "user123",
-	// 	Pass:     "securepassword",
-	// }
-
-	// repo.Save(pass)
-
-	// passwords, err := repo.List()
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-	// file.PrintPasswordsTable(passwords)
-
-	// Asegura que "repo" implementa el Repository interface
-	var _ repository.Repository = repo
-
-	// passwords, err := repo.List()
-
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-	// // defer file.ManualCloseFile(f)
-	// defer f.Close()
-
-	// exist, err := os.Stat("passwords.json")
-
-	// if err != nil || exist.Size() == 0 {
-	// 	fmt.Println("File does not exist or is empty, creating a new one...")
-	// 	// Create an empty JSON array in the file
-	// 	_, err := f.WriteString("[]")
-	// 	if err != nil {
-	// 		fmt.Println("Error writing to file:", err)
-	// 		return
-	// 	}
-	// 	// Reset file pointer to the beginning after writing
-	// 	_, err = f.Seek(0, 0)
-	// 	if err != nil {
-	// 		fmt.Println("Error seeking file:", err)
-	// 		return
-	// 	}
-	// }
-
-	// passwords, err := file.DecodePasswordsFromFile(f)
-	// if err != nil {
-	// 	fmt.Println("Error reading file:", err)
-	// 	return
-	// }
-
-	// file.PrintPasswordsTable(passwords)
 
 }
