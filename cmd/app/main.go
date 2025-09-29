@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/art5concept/clixxkey/internal/crypto"
@@ -112,11 +113,40 @@ func main() {
 			scanner.Scan()
 			pass := scanner.Text()
 
+			fmt.Print("Periodo de bloqueo (ejemplo: 10s, 30d, 2m, 3y): ")
+			scanner.Scan()
+			period := scanner.Text()
+
+			ntpTime, err := service.GetNTPTime()
+			if err != nil {
+				fmt.Println("No se pudo obtener la hora NTP:", err)
+				continue
+			}
+
+			var unlockAfter time.Time
+			if strings.HasSuffix(period, "s") {
+				secs, _ := strconv.Atoi(strings.TrimSuffix(period, "s"))
+				unlockAfter = ntpTime.Add(time.Duration(secs) * time.Second)
+			} else if strings.HasSuffix(period, "d") {
+				days, _ := strconv.Atoi(strings.TrimSuffix(period, "d"))
+				unlockAfter = ntpTime.AddDate(0, 0, days)
+			} else if strings.HasSuffix(period, "m") {
+				month, _ := strconv.Atoi(strings.TrimSuffix(period, "m"))
+				unlockAfter = ntpTime.AddDate(0, month, 0)
+			} else if strings.HasSuffix(period, "y") {
+				years, _ := strconv.Atoi(strings.TrimSuffix(period, "y"))
+				unlockAfter = ntpTime.AddDate(years, 0, 0)
+			} else {
+				fmt.Println("Formato de periodo inválido.")
+				continue
+			}
+
 			newPass := models.Password{
-				ID:       0, // ID will be set in Save method
-				Site:     site,
-				Username: username,
-				Pass:     pass,
+				ID:          0, // ID will be set in Save method
+				Site:        site,
+				Username:    username,
+				Pass:        pass,
+				UnlockAfter: unlockAfter,
 			}
 
 			if err := repo.Save(newPass); err != nil {
