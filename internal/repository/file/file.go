@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
+	"time"
 
 	"github.com/art5concept/clixxkey/internal/crypto"
 	"github.com/art5concept/clixxkey/internal/models"
@@ -49,17 +50,20 @@ func (r FileRepository) List() ([]models.Password, error) {
 	return passwords, nil
 }
 
-func PrintPasswordsTable(passwords []models.Password, id int) {
+func PrintPasswordsTable(passwords []models.Password, id int) (Unlocked bool) {
+	// scanner := bufio.NewScanner(os.Stdin)
 	table := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 	fmt.Fprintln(table, "ID\tSitio\tUsername\tPassword")
 	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
 
 	// el for cuando se usa con un range tiene un indice y un valor
 	for _, p := range passwords {
-		if p.ID == id {
+		if p.ID == id && time.Now().After(p.UnlockAfter) {
 			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, p.Pass)
+			Unlocked = true
 		} else {
 			fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
+			Unlocked = false
 		}
 		// %d es para enteros, %s para strings
 		// \t es tabulador
@@ -69,6 +73,7 @@ func PrintPasswordsTable(passwords []models.Password, id int) {
 	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
 	table.Flush()
 	fmt.Println("\tListados exitosamente")
+	return Unlocked
 }
 
 func (r *FileRepository) Save(p models.Password) error {
@@ -123,4 +128,29 @@ func (fr *FileRepository) Delete(id int) error {
 	}
 	return os.WriteFile(fr.path, encrypted, 0600)
 
+}
+
+func (fr *FileRepository) UpdateUnlockAfter(id int, unlockAfter time.Time) error {
+	passwords, err := fr.List()
+	if err != nil {
+		return err
+	}
+
+	for i, p := range passwords {
+		if p.ID == id {
+			passwords[i].UnlockAfter = unlockAfter
+			break
+		}
+	}
+
+	data, err := json.MarshalIndent(passwords, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	encrypted, err := crypto.Encrypt(data, fr.key)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(fr.path, encrypted, 0600)
 }

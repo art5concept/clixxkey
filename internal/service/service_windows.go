@@ -3,16 +3,12 @@
 package service
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
-
-func ClearScreen() {
-	fmt.Print("\033[H\033[2J")
-}
 
 func EnableVirtualTerminalProcessing() {
 	kernel32 := windows.NewLazyDLL("kernel32.dll")

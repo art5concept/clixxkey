@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/art5concept/clixxkey/internal/crypto"
@@ -94,8 +93,22 @@ func main() {
 				continue
 			}
 			service.ClearScreen()
-			file.PrintPasswordsTable(passwords, idInt)
+			Unlocked := file.PrintPasswordsTable(passwords, idInt)
 			time.Sleep(2 * time.Second)
+
+			if Unlocked {
+				unlockAfter, err := service.UpdateUnlockTime()
+				if err != nil {
+					fmt.Println("Error updating unlock time:", err)
+					continue
+				}
+
+				repo.UpdateUnlockAfter(idInt, unlockAfter)
+
+				fmt.Println("Press Enter to return to main menu.")
+				scanner.Scan()
+
+			}
 			continue
 
 		} else if option == "2" {
@@ -113,31 +126,10 @@ func main() {
 			scanner.Scan()
 			pass := scanner.Text()
 
-			fmt.Print("Periodo de bloqueo (ejemplo: 10s, 30d, 2m, 3y): ")
-			scanner.Scan()
-			period := scanner.Text()
+			unlockAfter, err := service.UpdateUnlockTime()
 
-			ntpTime, err := service.GetNTPTime()
 			if err != nil {
-				fmt.Println("No se pudo obtener la hora NTP:", err)
-				continue
-			}
-
-			var unlockAfter time.Time
-			if strings.HasSuffix(period, "s") {
-				secs, _ := strconv.Atoi(strings.TrimSuffix(period, "s"))
-				unlockAfter = ntpTime.Add(time.Duration(secs) * time.Second)
-			} else if strings.HasSuffix(period, "d") {
-				days, _ := strconv.Atoi(strings.TrimSuffix(period, "d"))
-				unlockAfter = ntpTime.AddDate(0, 0, days)
-			} else if strings.HasSuffix(period, "m") {
-				month, _ := strconv.Atoi(strings.TrimSuffix(period, "m"))
-				unlockAfter = ntpTime.AddDate(0, month, 0)
-			} else if strings.HasSuffix(period, "y") {
-				years, _ := strconv.Atoi(strings.TrimSuffix(period, "y"))
-				unlockAfter = ntpTime.AddDate(years, 0, 0)
-			} else {
-				fmt.Println("Formato de periodo inválido.")
+				fmt.Println("Error updating unlock time:", err)
 				continue
 			}
 
