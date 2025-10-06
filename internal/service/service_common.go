@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/beevik/ntp"
+	"golang.org/x/term"
 )
 
 func ClearScreen() {
@@ -60,4 +61,32 @@ func UpdateUnlockTime() (unlockTime time.Time, err error) {
 	default:
 		return time.Time{}, fmt.Errorf("unidad inválida: %s, usa: s, d, m, y", unit)
 	}
+}
+
+func ReadPassword() ([]byte, error) {
+	// fmt.Print("Introduce tu contraseña maestra: ")
+	termState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		return nil, err
+	}
+	defer term.Restore(int(os.Stdin.Fd()), termState)
+
+	password, err := term.ReadPassword(int(os.Stdin.Fd()))
+	// fmt.Println()
+	if err != nil {
+		return nil, err
+	}
+
+	return password, nil
+}
+
+func SecureZeroString(s *string) {
+	if s == nil {
+		return
+	}
+	b := []byte(*s)
+	for i := range b {
+		b[i] = 0
+	}
+	*s = string(b)
 }

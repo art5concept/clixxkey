@@ -20,12 +20,21 @@ func main() {
 
 	service.EnableVirtualTerminalProcessing()
 
+	service.EnterAltScreen()
+	defer service.ExitAltScreen()
+
 	fmt.Println("CLI password manager")
 
 	fmt.Print("Introduce tu contraseña maestra: ")
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	password := scanner.Text()
+	// scanner.Scan()
+	// password := scanner.Text()
+
+	password, err := service.ReadPassword()
+	if err != nil {
+		fmt.Println("Error leyendo contraseña:", err)
+		os.Exit(1)
+	}
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -44,11 +53,15 @@ func main() {
 		salt, _ = crypto.GenerateSalt()
 		os.WriteFile(saltPath, salt, 0600)
 	} else {
-		salt, _ = os.ReadFile(saltPath)
+		salt, err = os.ReadFile(saltPath)
+		if err != nil {
+			fmt.Println("Error leyendo salt:", err)
+			os.Exit(1)
+		}
 	}
 
 	key := crypto.DeriveKey([]byte(password), salt)
-
+	// service.SecureZeroString(&password)
 	repo = file.NewEncrypted(jsonPath, key)
 
 	_, err = repo.List()

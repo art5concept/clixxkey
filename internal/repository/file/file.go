@@ -9,6 +9,7 @@ import (
 
 	"github.com/art5concept/clixxkey/internal/crypto"
 	"github.com/art5concept/clixxkey/internal/models"
+	"github.com/art5concept/clixxkey/internal/service"
 )
 
 type FileRepository struct {
@@ -60,6 +61,7 @@ func PrintPasswordsTable(passwords []models.Password, id int) (Unlocked bool) {
 	for _, p := range passwords {
 		if p.ID == id && time.Now().After(p.UnlockAfter) {
 			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, p.Pass)
+			service.SecureZeroString(&p.Pass)
 			Unlocked = true
 		} else {
 			fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
