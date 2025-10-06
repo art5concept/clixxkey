@@ -19,7 +19,8 @@ const (
 
 // Deriva una clave usando Argon2id
 func DeriveKey(password, salt []byte) []byte {
-	return argon2.IDKey(password, salt, 1, 64*1024, 4, KeyLen)
+	// return argon2.IDKey(password, salt, 1, 64*1024, 4, KeyLen)
+	return argon2.IDKey(password, salt, 1, 128*1024, 4, KeyLen)
 }
 
 // Genera un salt aleatorio
