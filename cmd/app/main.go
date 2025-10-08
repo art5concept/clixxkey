@@ -105,6 +105,8 @@ func main() {
 			fmt.Println("\nIngrese el Id para ver el secreto o presione Enter para regresar:")
 			scanner.Scan()
 			idStr := scanner.Text()
+
+			// si presiona enter sin escribir nada regresa al menu
 			if idStr == "" {
 				continue
 			}
@@ -118,9 +120,10 @@ func main() {
 
 			service.ClearScreen()
 
+			// intenta desbloquear id especifico
 			unlocked, err := file.PrintPasswordsTable(passwords, idInt)
 
-			time.Sleep(2 * time.Second)
+			// time.Sleep(2 * time.Second)
 
 			if err != nil && !errors.Is(err, service.ErrPasswordLocked) {
 				//Errores criticos
@@ -129,9 +132,14 @@ func main() {
 			}
 
 			// si llegamos aqui, la contraseña  unlocked == true y se mostro
-			time.Sleep(2 * time.Second)
+			// time.Sleep(2 * time.Second)
 
 			if unlocked {
+				fmt.Println("\n La contraseña se mostrara por unos segundos...")
+				time.Sleep(5 * time.Second)
+
+				service.ClearScreen()
+
 				unlockAfter, err := service.UpdateUnlockTime()
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error actualizando tiempo de desbloqueo: %v\n", err)
@@ -146,9 +154,12 @@ func main() {
 					continue
 				}
 				fmt.Println("-----------------------------------------------")
-				fmt.Println("\n✓ El tiempo de desbloqueo se ha actualizado.")
-				fmt.Println("Press Enter to return to main menu.")
+				fmt.Println("\n El tiempo de desbloqueo se ha actualizado exitosamente.")
+				fmt.Println(" La contraseña permanecera en el portapapeles por 60 segundos")
+				fmt.Println(" Press Enter to return to main menu.")
 				scanner.Scan()
+			} else {
+				time.Sleep(3 * time.Second)
 			}
 			continue
 

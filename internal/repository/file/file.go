@@ -82,8 +82,11 @@ func printTableWithUnlocked(passwords []models.Password, unlockID int, unlockedP
 	for _, p := range passwords {
 		if p.ID == unlockID {
 			// Reveal the password
-			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, p.Pass)
-			service.SecureZeroString(&p.Pass)
+			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, unlockedPass.Pass)
+
+			// limpiar memoria luego de mostrar
+			passCopy := unlockedPass.Pass
+			service.SecureZeroString(&passCopy)
 		} else {
 			// Hide the password
 			fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
@@ -107,7 +110,13 @@ func PrintPasswordsTable(passwords []models.Password, id int) (Unlocked bool, er
 	status, err := service.CheckPasswordUnlock(passwords, id)
 
 	if status.CanUnlock {
+		// mostrar contraseña revelada
 		printTableWithUnlocked(passwords, id, status.Password)
+
+		if err := service.CopyPasswordToClipboard(status.Password.Pass); err != nil {
+			fmt.Printf("Advertencia: No se pudo copiar al portapapeles: %v\n", err)
+		}
+
 	} else {
 		printAllHidden(passwords)
 	}
