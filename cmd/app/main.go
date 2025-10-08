@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -93,34 +94,61 @@ func main() {
 			passwords, err := repo.List()
 			if err != nil {
 				fmt.Println("Error:", err)
-				return
-			}
-			service.ClearScreen()
-			file.PrintPasswordsTable(passwords, -1)
-			fmt.Println("Enter ID to view password details or press Enter to return:")
-			scanner.Scan()
-			id := scanner.Text()
-			idInt, err := strconv.Atoi(id)
-			if err != nil {
-				fmt.Println("Invalid ID, please enter a number.")
+				time.Sleep(2 * time.Second)
 				continue
 			}
+
 			service.ClearScreen()
-			Unlocked := file.PrintPasswordsTable(passwords, idInt)
+			// Mostrar tabla de contraseñas sin revelar contraseñas
+			file.PrintPasswordsTable(passwords, -1)
+
+			fmt.Println("\nIngrese el Id para ver el secreto o presione Enter para regresar:")
+			scanner.Scan()
+			idStr := scanner.Text()
+			if idStr == "" {
+				continue
+			}
+
+			idInt, err := strconv.Atoi(idStr)
+			if err != nil {
+				fmt.Println("Id invalido, debe ser un numero.")
+				time.Sleep(2 * time.Second)
+				continue
+			}
+
+			service.ClearScreen()
+
+			unlocked, err := file.PrintPasswordsTable(passwords, idInt)
+
 			time.Sleep(2 * time.Second)
 
-			if Unlocked {
+			if err != nil && !errors.Is(err, service.ErrPasswordLocked) {
+				//Errores criticos
+				time.Sleep(2 * time.Second)
+				continue
+			}
+
+			// si llegamos aqui, la contraseña  unlocked == true y se mostro
+			time.Sleep(2 * time.Second)
+
+			if unlocked {
 				unlockAfter, err := service.UpdateUnlockTime()
 				if err != nil {
-					fmt.Println("Error updating unlock time:", err)
+					fmt.Fprintf(os.Stderr, "Error actualizando tiempo de desbloqueo: %v\n", err)
+					time.Sleep(2 * time.Second)
 					continue
 				}
 
-				repo.UpdateUnlockAfter(idInt, unlockAfter)
-
+				err = repo.UpdateUnlockAfter(idInt, unlockAfter)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error guardando nuevo tiempo de desbloqueo: %v\n", err)
+					time.Sleep(2 * time.Second)
+					continue
+				}
+				fmt.Println("-----------------------------------------------")
+				fmt.Println("\n✓ El tiempo de desbloqueo se ha actualizado.")
 				fmt.Println("Press Enter to return to main menu.")
 				scanner.Scan()
-
 			}
 			continue
 

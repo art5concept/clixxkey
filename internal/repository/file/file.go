@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -51,31 +52,70 @@ func (r FileRepository) List() ([]models.Password, error) {
 	return passwords, nil
 }
 
-func PrintPasswordsTable(passwords []models.Password, id int) (Unlocked bool) {
-	// scanner := bufio.NewScanner(os.Stdin)
+var (
+	ErrNTPFailed        = errors.New("No se pudo obtener la hora de NTP")
+	ErrPasswordNotFound = errors.New("No se encontro la contraseña con ese ID")
+	ErrPasswordNotReady = errors.New("La contraseña no esta lista para ser mostrada")
+)
+
+func printAllHidden(passwords []models.Password) {
 	table := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 	fmt.Fprintln(table, "ID\tSitio\tUsername\tPassword")
 	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
 
 	// el for cuando se usa con un range tiene un indice y un valor
 	for _, p := range passwords {
-		if p.ID == id && time.Now().After(p.UnlockAfter) {
-			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, p.Pass)
-			service.SecureZeroString(&p.Pass)
-			Unlocked = true
-		} else {
-			fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
-			Unlocked = false
-		}
-		// %d es para enteros, %s para strings
-		// \t es tabulador
-		// \n es nueva linea
-
+		fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
 	}
+
 	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
 	table.Flush()
-	fmt.Println("\tListados exitosamente")
-	return Unlocked
+}
+
+func printTableWithUnlocked(passwords []models.Password, unlockID int, unlockedPass *models.Password) {
+
+	table := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+	fmt.Fprintln(table, "ID\tSitio\tUsername\tPassword")
+	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
+
+	// el for cuando se usa con un range tiene un indice y un valor
+	for _, p := range passwords {
+		if p.ID == unlockID {
+			// Reveal the password
+			fmt.Fprintf(table, "%d\t%s\t%s\t%s\n", p.ID, p.Site, p.Username, p.Pass)
+			service.SecureZeroString(&p.Pass)
+		} else {
+			// Hide the password
+			fmt.Fprintf(table, "%d\t%s\t%s\t****************\n", p.ID, p.Site, p.Username)
+		}
+	}
+
+	fmt.Fprintln(table, "----\t----------------\t----------------\t----------------")
+	table.Flush()
+}
+
+// PrintPasswordsTable muestra las contraseñas en una tabla, desencriptando solo la que coincide con el ID y si el tiempo es correcto
+// Si ID es -1, muestra todas las contraseñas ocultas
+
+func PrintPasswordsTable(passwords []models.Password, id int) (Unlocked bool, err error) {
+
+	if id == -1 {
+		printAllHidden(passwords)
+		return false, nil
+	}
+
+	status, err := service.CheckPasswordUnlock(passwords, id)
+
+	if status.CanUnlock {
+		printTableWithUnlocked(passwords, id, status.Password)
+	} else {
+		printAllHidden(passwords)
+	}
+
+	// mostrar el tiempo restante
+	service.PrintUnlockTimeInfo(status)
+
+	return status.CanUnlock, err
 }
 
 func (r *FileRepository) Save(p models.Password) error {
