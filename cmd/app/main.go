@@ -75,6 +75,8 @@ func main() {
 	scanner = bufio.NewScanner(os.Stdin)
 
 	for {
+
+		// this is my menu all made by me and to me looks simple and clean
 		service.ClearScreen()
 		fmt.Println("----------------------------------------")
 		fmt.Println("\n Password Manager ")
@@ -203,8 +205,18 @@ func main() {
 			}
 
 		} else if option == "3" {
+			passwords, err := repo.List()
+			if err != nil {
+				fmt.Println("Error:", err)
+				time.Sleep(2 * time.Second)
+				continue
+			}
+
 			service.ClearScreen()
-			fmt.Print("Ingrese el ID de la contraseña a borrar: ")
+			// Mostrar tabla de contraseñas sin revelar contraseñas
+			file.PrintPasswordsTable(passwords, -1)
+
+			fmt.Print("Ingrese el ID de la contraseña a borrar o Enter para regresar: ")
 			scanner.Scan()
 			idString, err := strconv.Atoi(scanner.Text())
 
@@ -229,3 +241,5 @@ func main() {
 	}
 
 }
+
+// i want too say thanks to all the CS50 staff and harvard univerity

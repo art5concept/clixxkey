@@ -19,7 +19,7 @@ type FileRepository struct {
 }
 
 func New(path string) *FileRepository {
-
+	// also in this lines i use AI to know this functions in GO
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.WriteFile(path, []byte("[]"), 0644)
 	}
@@ -58,6 +58,7 @@ var (
 	ErrPasswordNotReady = errors.New("La contraseña no esta lista para ser mostrada")
 )
 
+// this function is fully made by me
 func printAllHidden(passwords []models.Password) {
 	table := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 	fmt.Fprintln(table, "ID\tSitio\tUsername\tPassword")
@@ -72,6 +73,7 @@ func printAllHidden(passwords []models.Password) {
 	table.Flush()
 }
 
+// and also this one is fully made by me
 func printTableWithUnlocked(passwords []models.Password, unlockID int, unlockedPass *models.Password) {
 
 	table := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)

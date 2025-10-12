@@ -14,6 +14,7 @@ import (
 	"golang.org/x/term"
 )
 
+// I use AI to make also this line
 func ClearScreen() {
 	fmt.Print("\033[H\033[2J")
 }
@@ -26,6 +27,7 @@ func UpdateUnlockTime() (unlockTime time.Time, err error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Periodo de bloqueo (ejemplo: 10s, 30d, 2m, 3y): ")
 	scanner.Scan()
+	// i use AI to know the function Trimspace
 	period := strings.TrimSpace(scanner.Text())
 
 	ntpTime, err := GetNTPTime()

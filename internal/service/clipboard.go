@@ -68,7 +68,7 @@ func ShowClipboardCountdown(seconds int) {
 		}
 
 		if remaining <= 30 {
-			fmt.Println("Portapapeles se limpiara en %d segundos...\n", remaining)
+			fmt.Printf("Portapapeles se limpiara en %d segundos...\n", remaining)
 		}
 	}
 }

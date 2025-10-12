@@ -64,6 +64,7 @@ func CheckPasswordUnlock(passwords []models.Password, id int) (*PasswordUnlockSt
 	return status, ErrPasswordLocked
 }
 
+// this function was also almost made by me in fully
 func FormatTimeRemaining(d time.Duration) string {
 	if d <= 0 {
 		return "ya desbloqueada"

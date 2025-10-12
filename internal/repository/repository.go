@@ -15,3 +15,5 @@ type Repository interface {
 	// Update(id int, p models.Password) error
 	// GetByID(id int) (models.Password, error)
 }
+
+// in the future maybe ill make a GUI to use the interface here and also i want to put some reed-salomon error manager here

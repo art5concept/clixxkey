@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+// this lines was also made by AI claude
 func EnableVirtualTerminalProcessing() {
 	kernel32 := windows.NewLazyDLL("kernel32.dll")
 	setConsoleMode := kernel32.NewProc("SetConsoleMode")
