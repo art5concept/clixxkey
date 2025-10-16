@@ -83,7 +83,7 @@ func main() {
 		fmt.Println("1. Mostrar Contraseñas")
 		fmt.Println("2. Agregar Contraseña")
 		fmt.Println("3. Borrar Contraseña")
-		fmt.Println("0. Salir")
+		fmt.Println("0. Salirr")
 		fmt.Println("Seleciona una opcion:")
 
 		scanner.Scan()
