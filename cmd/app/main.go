@@ -27,7 +27,7 @@ func main() {
 	fmt.Println("CLI password manager")
 
 	fmt.Print("Introduce tu contraseña maestra: ")
-	scanner := bufio.NewScanner(os.Stdin)
+	// scanner := bufio.NewScanner(os.Stdin)
 	// scanner.Scan()
 	// password := scanner.Text()
 
@@ -72,7 +72,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	scanner = bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
 
@@ -83,7 +83,7 @@ func main() {
 		fmt.Println("1. Mostrar Contraseñas")
 		fmt.Println("2. Agregar Contraseña")
 		fmt.Println("3. Borrar Contraseña")
-		fmt.Println("0. Salirr")
+		fmt.Println("0. Salir")
 		fmt.Println("Seleciona una opcion:")
 
 		scanner.Scan()
